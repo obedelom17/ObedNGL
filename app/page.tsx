@@ -15,22 +15,20 @@ export default function Home() {
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [animateIn, setAnimateIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   async function fetchMessages() {
     try {
       const res = await fetch('/api/messages');
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setMessages(data);
-        setAnimateIn(true);
-      }
+      if (Array.isArray(data)) setMessages(data);
     } catch (e) {
-      console.error('Erreur chargement messages', e);
+      console.error('Erreur chargement', e);
     }
   }
 
   useEffect(() => {
+    setMounted(true);
     fetchMessages();
     const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
@@ -39,22 +37,18 @@ export default function Home() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!msg.trim()) return;
-
     setLoading(true);
     setError('');
-
     try {
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, message: msg }),
       });
-
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || 'Erreur envoi');
       }
-
       setMsg('');
       await fetchMessages();
     } catch (e: any) {
@@ -67,136 +61,128 @@ export default function Home() {
   function formatDate(iso: string) {
     const d = new Date(iso);
     return d.toLocaleString('fr-FR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
     });
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 py-12 px-4">
-      {/* Particules décoratives */}
+    <main className="min-h-screen bg-[#0a0a0a] text-white">
+      {/* Gradient orb background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#0ea5e9]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-[#8b5cf6]/10 rounded-full blur-[100px]" />
       </div>
 
-      <div className="max-w-2xl mx-auto relative z-10">
+      <div className="max-w-3xl mx-auto px-6 py-20 relative z-10">
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 mb-6 border border-white/20">
-            <span className="text-2xl">🔥</span>
-            <span className="text-white/80 text-sm font-medium">Livre d'or anonyme</span>
-            <span className="text-2xl">🔥</span>
+        <div className={`text-center mb-16 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 mb-8 text-sm text-[#94a3b8]">
+            <span className="w-2 h-2 bg-[#0ea5e9] rounded-full animate-pulse" />
+            Livre d'or anonyme
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-pink-200 mb-4 tracking-tight">
-            Bienvenue sur ObedNGL
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6">
+            <span className="bg-gradient-to-r from-white via-[#e2e8f0] to-[#94a3b8] bg-clip-text text-transparent">
+              Bienvenue sur
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-[#0ea5e9] via-[#8b5cf6] to-[#ec4899] bg-clip-text text-transparent">
+              ObedNGL
+            </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-purple-200/80 font-medium max-w-lg mx-auto leading-relaxed">
-            Tous ce que tu as peur de dire en classe, faut dire ça ici 😈
+          <p className="text-lg md:text-xl text-[#94a3b8] max-w-xl mx-auto leading-relaxed">
+            Tous ce que tu as peur de dire en classe, faut dire ça ici
           </p>
         </div>
 
         {/* Formulaire */}
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 shadow-2xl mb-10 transform hover:scale-[1.01] transition-transform duration-300">
+        <div className={`bg-[#111111] border border-[#222222] rounded-2xl p-6 md:p-8 mb-12 transition-all duration-1000 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
+            <div>
+              <label className="block text-sm text-[#94a3b8] mb-2 font-medium">Ton nom (optionnel)</label>
               <input
                 type="text"
-                placeholder="Ton nom (ou reste anonyme...)"
+                placeholder="Anonyme"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:bg-white/10 transition-all duration-300"
+                className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#222222] rounded-xl text-white placeholder-[#475569] focus:outline-none focus:border-[#0ea5e9]/50 focus:ring-1 focus:ring-[#0ea5e9]/20 transition-all"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl opacity-50">👤</span>
             </div>
-
-            <div className="relative">
+            <div>
+              <label className="block text-sm text-[#94a3b8] mb-2 font-medium">Ton message</label>
               <textarea
-                placeholder="Balance ton secret... 🤐"
-                rows={3}
+                placeholder="Balance ton secret..."
+                rows={4}
                 value={msg}
                 onChange={(e) => setMsg(e.target.value)}
                 required
-                className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:bg-white/10 transition-all duration-300 resize-y"
+                className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#222222] rounded-xl text-white placeholder-[#475569] focus:outline-none focus:border-[#0ea5e9]/50 focus:ring-1 focus:ring-[#0ea5e9]/20 transition-all resize-y"
               />
-              <span className="absolute right-4 bottom-4 text-2xl opacity-50">💬</span>
             </div>
-
             {error && (
-              <div className="bg-red-500/20 border border-red-500/30 rounded-lg px-4 py-3 text-red-200 text-sm flex items-center gap-2">
-                <span>⚠️</span> {error}
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-red-400 text-sm">
+                {error}
               </div>
             )}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 disabled:from-purple-500/50 disabled:to-pink-500/50 text-white font-bold text-lg rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-[#0ea5e9] to-[#8b5cf6] hover:from-[#0284c7] hover:to-[#7c3aed] disabled:opacity-50 text-white font-bold rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-[#0ea5e9]/20"
             >
-              {loading ? (
-                <>
-                  <span className="animate-spin">⏳</span> Envoi en cours...
-                </>
-              ) : (
-                <>
-                  <span>🚀</span> Envoyer anonymement
-                </>
-              )}
+              {loading ? 'Envoi...' : 'Envoyer anonymement'}
             </button>
           </form>
         </div>
 
-        {/* Compteur */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <span>💌</span> Messages
+        {/* Messages header */}
+        <div className={`flex items-center justify-between mb-8 transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <h2 className="text-2xl font-bold text-white">
+            Messages <span className="text-[#475569]">({messages.length})</span>
           </h2>
-          <span className="bg-white/10 backdrop-blur-md text-white/80 px-3 py-1 rounded-full text-sm font-medium border border-white/10">
-            {messages.length} secret{messages.length > 1 ? 's' : ''}
-          </span>
+          <div className="flex items-center gap-2 text-sm text-[#475569]">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            En direct
+          </div>
         </div>
 
-        {/* Messages */}
+        {/* Messages list */}
         <div className="space-y-4">
           {messages.length === 0 && (
-            <div className="text-center py-16 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10">
-              <span className="text-6xl mb-4 block">🤫</span>
-              <p className="text-white/50 text-lg">Aucun secret pour l'instant...</p>
-              <p className="text-white/30 text-sm mt-1">Soyez le premier à craquer !</p>
+            <div className={`text-center py-16 bg-[#111111] border border-[#222222] rounded-2xl transition-all duration-1000 delay-400 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
+              <div className="text-4xl mb-4">🤫</div>
+              <p className="text-[#475569]">Aucun secret pour l'instant</p>
+              <p className="text-[#334155] text-sm mt-1">Soyez le premier à craquer</p>
             </div>
           )}
 
-          {messages.map((m, index) => (
+          {messages.map((m, i) => (
             <div
               key={m.id}
-              className={`bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/10 shadow-lg hover:bg-white/15 hover:border-white/20 transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-0.5 ${animateIn ? 'animate-fadeIn' : ''}`}
-              style={{ animationDelay: `${index * 100}ms` }}
+              className={`bg-[#111111] border border-[#222222] rounded-xl p-5 hover:border-[#333333] transition-all duration-300 group ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ transitionDelay: `${400 + i * 50}ms` }}
             >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                    {m.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <span className="font-bold text-white text-sm">{m.name}</span>
-                    <span className="text-xs text-white/40 ml-2">{formatDate(m.createdAt)}</span>
-                  </div>
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0ea5e9] to-[#8b5cf6] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                  {m.name.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-xl opacity-30">🕵️</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-semibold text-white text-sm">{m.name}</span>
+                    <span className="text-xs text-[#475569]">{formatDate(m.createdAt)}</span>
+                    <span className="ml-auto text-xs bg-[#0ea5e9]/10 text-[#0ea5e9] px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      Anonyme
+                    </span>
+                  </div>
+                  <p className="text-[#cbd5e1] leading-relaxed whitespace-pre-wrap">{m.message}</p>
+                </div>
               </div>
-              <p className="text-white/90 leading-relaxed pl-[52px] whitespace-pre-wrap">{m.message}</p>
             </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-12 text-white/20 text-sm">
+        <div className={`mt-16 text-center text-[#334155] text-sm transition-all duration-1000 delay-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
           <p>🔒 100% anonyme • Aucune donnée personnelle stockée</p>
         </div>
       </div>

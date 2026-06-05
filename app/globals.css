@@ -3,35 +3,25 @@
 @tailwind utilities;
 
 body {
-  background-color: #f1f5f9;
+  background-color: #0a0a0a;
+  color: #ffffff;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-/* Scrollbar stylisée */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: #0a0a0a;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  background: #222222;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #333333;
+}
+
+::selection {
+  background: #0ea5e9;
+  color: #ffffff;
 }
