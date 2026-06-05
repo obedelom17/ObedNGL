@@ -1,12 +1,12 @@
 export const metadata = {
   title: 'ObedNGL',
-  description: 'Messages anonymes',
+  description: 'Tous ce que tu as peur de dire en classe, faut dire ça ici',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className="antialiased text-slate-800">{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   )
 }
