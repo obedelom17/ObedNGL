@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { supabase } from "../lib/supabase";
+import { getSupabase } from "../lib/supabase";
+
+const supabase = typeof window !== "undefined" ? getSupabase() : null;
 
 // Deterministic emoji + gradient from index
 const AVATARS = ["👻", "🎭", "🦊", "🌙", "🔮", "🎪", "🦋", "🌊", "⚡", "🎯"];
@@ -19,7 +21,6 @@ const GRADIENTS = [
 ];
 
 function getAvatarProps(id) {
-  // Use last char code of UUID for determinism
   const idx = id.charCodeAt(id.length - 1) % 10;
   return { emoji: AVATARS[idx], gradient: GRADIENTS[idx] };
 }
@@ -37,10 +38,10 @@ function formatDate(ts) {
     d.getMonth() === today.getMonth() &&
     d.getFullYear() === today.getFullYear();
   if (isToday) return `Aujourd'hui ${formatTime(ts)}`;
-  return d.toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "short",
-  }) + ` · ${formatTime(ts)}`;
+  return (
+    d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }) +
+    ` · ${formatTime(ts)}`
+  );
 }
 
 function SkeletonCard() {
@@ -73,7 +74,7 @@ export default function MessageBoard() {
   // Fetch initial messages
   useEffect(() => {
     async function fetchMessages() {
-      const { data, error } = await supabase
+      const { data, error } = await getSupabase()
         .from("messages")
         .select("*")
         .order("created_at", { ascending: false })
@@ -87,14 +88,14 @@ export default function MessageBoard() {
 
   // Real-time subscription
   useEffect(() => {
-    const channel = supabase
+    const client = getSupabase();
+    const channel = client
       .channel("realtime:messages")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
           setMessages((prev) => {
-            // Avoid duplicates
             if (prev.find((m) => m.id === payload.new.id)) return prev;
             return [payload.new, ...prev];
           });
@@ -103,7 +104,7 @@ export default function MessageBoard() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      client.removeChannel(channel);
     };
   }, []);
 
@@ -112,7 +113,7 @@ export default function MessageBoard() {
     if (!trimmed || sending) return;
 
     setSending(true);
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from("messages")
       .insert([{ content: trimmed }]);
 
@@ -147,8 +148,9 @@ export default function MessageBoard() {
             <div className="header-eyebrow">Anonyme · Libre · Instantané</div>
             <h1>ObedNGL</h1>
             <p className="header-sub">
-              Bienvenue 👋 — <strong>Ce que tu as peur de dire en Classe,</strong>{" "}
-              faut dire ça ici.
+              Bienvenue 👋 —{" "}
+              <strong>Ce que tu as peur de dire en Classe,</strong> faut dire ça
+              ici.
             </p>
           </header>
 
@@ -168,7 +170,14 @@ export default function MessageBoard() {
             />
             <div className="compose-footer">
               <span className="compose-hint">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
@@ -181,14 +190,29 @@ export default function MessageBoard() {
               >
                 {sending ? (
                   <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      style={{ animation: "spin 1s linear infinite" }}
+                    >
                       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
                     Envoi…
                   </>
                 ) : (
                   <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <line x1="22" y1="2" x2="11" y2="13" />
                       <polygon points="22 2 15 22 11 13 2 9 22 2" />
                     </svg>
@@ -204,7 +228,8 @@ export default function MessageBoard() {
             <h2 className="messages-title">Messages</h2>
             {!loading && (
               <span className="messages-count">
-                {messages.length} {messages.length === 1 ? "message" : "messages"}
+                {messages.length}{" "}
+                {messages.length === 1 ? "message" : "messages"}
               </span>
             )}
           </div>
@@ -219,8 +244,12 @@ export default function MessageBoard() {
             ) : messages.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-state-icon">🤫</span>
-                <p className="empty-state-title">Aucun message pour l'instant</p>
-                <p className="empty-state-sub">Sois le premier à briser le silence…</p>
+                <p className="empty-state-title">
+                  Aucun message pour l'instant
+                </p>
+                <p className="empty-state-sub">
+                  Sois le premier à briser le silence…
+                </p>
               </div>
             ) : (
               messages.map((msg) => {
@@ -236,7 +265,9 @@ export default function MessageBoard() {
                         {emoji}
                       </span>
                       <span className="message-author">Anonyme</span>
-                      <span className="message-time">{formatDate(msg.created_at)}</span>
+                      <span className="message-time">
+                        {formatDate(msg.created_at)}
+                      </span>
                     </div>
                     <p className="message-content">{msg.content}</p>
                   </div>
@@ -252,7 +283,9 @@ export default function MessageBoard() {
       </div>
 
       {/* Toast */}
-      <div className={`toast ${toast.visible ? "visible" : ""}`}>{toast.text}</div>
+      <div className={`toast ${toast.visible ? "visible" : ""}`}>
+        {toast.text}
+      </div>
 
       <style>{`
         @keyframes spin {
