@@ -1,35 +1,87 @@
-# ObedNGL
+# ObedNGL 🔒
 
-Site de messages anonymes. Déployable en 2 minutes sur Vercel.
+> Ce que tu as peur de dire en Classe, faut dire ça ici.
 
-## Déploiement rapide
+Messages anonymes en temps réel. Next.js 14 + Supabase.
 
-### 1. Créer le projet sur Vercel
-- Pousse ce dossier sur GitHub
-- Importe le repo sur [vercel.com](https://vercel.com)
+---
 
-### 2. Créer la base de données Redis
-- Va sur [vercel.com/marketplace](https://vercel.com/marketplace?category=storage&search=redis)
-- Cherche **Upstash Redis** → Install
-- Crée un store et connecte-le à ton projet
-- Vercel injectera automatiquement `UPSTASH_REDIS_REST_URL` et `UPSTASH_REDIS_REST_TOKEN`
+## ⚡ Setup en 5 minutes
 
-### 3. Déployer
-- Vercel détecte automatiquement Next.js
-- Clique sur **Deploy**
-- C'est en ligne !
+### 1. Supabase — Créer la table
 
-## Développement local
+Dans ton projet Supabase, va dans **SQL Editor** et exécute :
+
+```sql
+-- Créer la table messages
+create table messages (
+  id uuid default gen_random_uuid() primary key,
+  content text not null check (char_length(content) between 1 and 500),
+  created_at timestamp with time zone default now() not null
+);
+
+-- Activer Row Level Security
+alter table messages enable row level security;
+
+-- Tout le monde peut lire
+create policy "Anyone can read messages"
+  on messages for select
+  using (true);
+
+-- Tout le monde peut écrire (anonyme)
+create policy "Anyone can insert messages"
+  on messages for insert
+  with check (true);
+
+-- Activer la réplication temps réel
+alter publication supabase_realtime add table messages;
+```
+
+### 2. Variables d'environnement
+
+```bash
+cp .env.local.example .env.local
+```
+
+Remplis avec tes clés Supabase (Dashboard → Settings → API) :
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+### 3. Lancer en local
 
 ```bash
 npm install
 npm run dev
 ```
 
-> Nécessite les variables d'environnement Upstash pour fonctionner en local.
+---
 
-## Fonctionnalités
-- Envoi anonyme (nom optionnel)
-- Affichage en temps réel (refresh auto toutes les 5s)
-- Persistance des messages via Upstash Redis
-- Design responsive fidèle à la capture originale
+## 🚀 Déploiement Vercel
+
+```bash
+# Option 1 : via CLI
+npx vercel
+
+# Option 2 : push sur GitHub → import sur vercel.com
+```
+
+N'oublie pas d'ajouter les **Environment Variables** dans les settings Vercel :
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+---
+
+## 🖼️ OpenGraph Image
+
+L'OG image est générée automatiquement via `/app/opengraph-image.jsx` (Next.js ImageResponse).  
+Elle s'affiche quand tu partages le lien sur WhatsApp, Discord, Twitter, etc.
+
+---
+
+## Stack
+
+- **Next.js 14** (App Router)
+- **Supabase** (PostgreSQL + Realtime)
+- **Vercel** (hosting + edge functions)
