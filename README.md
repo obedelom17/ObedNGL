@@ -1,6 +1,6 @@
 # ObedNGL
 
-Site de messages anonymes inspiré de ta capture d'écran. Déployable en 2 minutes sur Vercel.
+Site de messages anonymes. Déployable en 2 minutes sur Vercel.
 
 ## Déploiement rapide
 
@@ -8,10 +8,11 @@ Site de messages anonymes inspiré de ta capture d'écran. Déployable en 2 minu
 - Pousse ce dossier sur GitHub
 - Importe le repo sur [vercel.com](https://vercel.com)
 
-### 2. Créer la base de données KV
-- Dans ton dashboard Vercel, va dans **Storage** → **Create Database** → **KV** (Upstash Redis)
-- Choisis la région **Washington, D.C.** (us-east-1) pour la latence
-- Connecte ce KV store à ton projet
+### 2. Créer la base de données Redis
+- Va sur [vercel.com/marketplace](https://vercel.com/marketplace?category=storage&search=redis)
+- Cherche **Upstash Redis** → Install
+- Crée un store et connecte-le à ton projet
+- Vercel injectera automatiquement `UPSTASH_REDIS_REST_URL` et `UPSTASH_REDIS_REST_TOKEN`
 
 ### 3. Déployer
 - Vercel détecte automatiquement Next.js
@@ -25,10 +26,10 @@ npm install
 npm run dev
 ```
 
-> Nécessite les variables d'environnement KV pour fonctionner en local (copie-les depuis le dashboard Vercel).
+> Nécessite les variables d'environnement Upstash pour fonctionner en local.
 
 ## Fonctionnalités
 - Envoi anonyme (nom optionnel)
 - Affichage en temps réel (refresh auto toutes les 5s)
-- Persistance des messages via Redis serverless
-- Design responsive fidèle à ta capture
+- Persistance des messages via Upstash Redis
+- Design responsive fidèle à la capture originale
